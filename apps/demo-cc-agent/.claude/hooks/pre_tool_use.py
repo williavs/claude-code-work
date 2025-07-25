@@ -2,6 +2,10 @@
 # /// script
 # requires-python = ">=3.8"
 # ///
+"""
+Pre-tool use hook for security filtering and session data collection.
+Blocks dangerous commands and logs tool usage for contextual analysis.
+"""
 
 import json
 import sys

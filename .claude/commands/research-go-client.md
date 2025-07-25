@@ -1,183 +1,157 @@
 ---
 name: research-go-client
-description: Deploys a research team to analyze existing service SDKs and plan optimal Go client approach
-tools: Task, Read, Bash, Grep, Glob, LS, TodoWrite
+description: Deploys a research team to analyze OpenAPI schema and plan Go client generation
+tools: Task, Read, Bash, Grep, Glob, LS, TodoWrite, WebFetch
 ---
 
 # research-go-client
 
-Deploys a specialized multi-agent research team to thoroughly analyze an existing service's SDK and plan the optimal Go client wrapper approach.
+Deploys a specialized research team to analyze OpenAPI schema and plan deterministic Go client generation using oapi-codegen.
 
 ## Phase 1: Information Gathering
 
 Ask user these questions ONE AT A TIME:
 
 1. **Service name?** (e.g., "payroll-platform")
-2. **GitHub source URL?** 
-3. **OpenAPI schema URL or file?** (Critical for build phase)
-4. **Endpoints needed for reporting?** (List specific ones)
+2. **OpenAPI schema URL or file path?** (REQUIRED - this drives everything)
+3. **Target module name?** (e.g., "github.com/justworkshr/payroll-platform-go-client")
+4. **Authentication type?** (OAuth2, API Key, Bearer token, etc.)
 
-## Phase 2: Directory Safety Check
+## Phase 2: Directory Verification
 
 **🚨 MANDATORY VERIFICATION:**
 ```bash
 pwd
-basename $(pwd) 
+basename $(pwd)
 git remote -v 2>/dev/null || echo "Not a git repo"
+ls -la
 ```
 
-**SAFETY:** Must be in safe directory (like `/reporting`). If unclear, ASK USER.
+**VERIFY:** We're in the target client repo directory. If not, guide user to correct location.
 
-## Phase 3: Deploy Research Swarm
+## Phase 3: Deploy Research Team
 
-Deploy 4 specialized research agents simultaneously:
+Deploy 3 specialized agents simultaneously:
 
-### Agent 1: SDK Structure Analyst
+### Agent 1: OpenAPI Schema Analyst
 ```
-Task: Analyze the service's official Go SDK structure and capabilities.
+Task: Thoroughly analyze the OpenAPI schema for code generation.
 
 Your mission:
-1. Clone {github-url} to temp-analysis
-2. Find official SDK (look in /sdk/go/, /client/, /api/)
-3. Analyze SDK structure:
-   - Main client interfaces
-   - Available API methods  
-   - Authentication patterns
-   - Module/package structure
-   - Version and maintenance status
+1. Fetch/read the OpenAPI schema from {schema-url-or-path}
+2. Analyze schema structure:
+   - OpenAPI version (2.0/3.0/3.1)
+   - Available endpoints and operations
+   - Data models and schemas
+   - Authentication/security schemes
+   - Server configurations
 
 Report back:
-- SDK location and module path
-- All available client interfaces
-- Authentication mechanism (OAuth2, etc.)
-- List of ALL available methods
-- SDK version and last updated
+- Schema version and validity
+- Complete endpoint inventory
+- All data models/schemas defined
+- Authentication requirements
+- Any schema issues or warnings
 ```
 
-### Agent 2: Type System Expert
+### Agent 2: oapi-codegen Configuration Expert
 ```
-Task: Catalog all data types and models from the service SDK.
+Task: Plan optimal oapi-codegen configuration for this schema.
 
 Your mission:
-1. Examine all model/type files in the SDK
-2. Map data structures to user's needed endpoints
-3. Identify core types for reporting use cases
+1. Research oapi-codegen best practices
+2. Determine optimal generation config:
+   - Package name and structure
+   - Client vs types vs server generation
+   - Interface style (client-with-responses, etc.)
+   - Additional options needed
 
 Report back:
-- Complete list of relevant data types
-- Type definitions (structs, enums, etc.)
-- Relationships between types
-- Which types are needed for user's endpoints
-- Any custom types we might need to create
+- Recommended oapi-codegen version
+- Configuration file structure
+- Generation command options
+- Package organization strategy
+- Any special flags needed
 ```
 
-### Agent 3: JW Patterns Researcher  
+### Agent 3: Integration Patterns Researcher
 ```
-Task: Research established JW client patterns from the codebase.
+Task: Research how generated client will integrate with existing code.
 
 Your mission:
-1. Examine existing JW client implementations (health-benefits, etc.)
-2. Document standard patterns for:
-   - Client interface design
-   - OAuth2 configuration
-   - Error handling approaches
-   - Mock generation strategies
-   - Integration with reporting service
+1. Analyze JW authentication patterns
+2. Research existing Go client usage patterns
+3. Plan integration approach:
+   - How to wrap generated client if needed
+   - Authentication injection pattern
+   - Error handling approach
+   - Testing strategy for generated code
 
 Report back:
-- Standard JW client interface patterns
-- OAuth2 setup patterns
-- Error handling conventions
+- Authentication integration pattern
+- Any wrapper code needed
 - Mock generation approach
-- Integration patterns for reporting service
+- Integration examples
+- Testing recommendations
 ```
 
-### Agent 4: OpenAPI Integration Specialist
-```
-Task: Analyze the OpenAPI schema to complement SDK analysis.
+## Phase 4: Synthesis & Validation
 
-Your mission:
-1. Parse the provided OpenAPI schema
-2. Cross-reference with SDK findings
-3. Identify any gaps or additional insights
+Consolidate findings into actionable plan:
 
-Report back:
-- Schema version and completeness
-- Endpoint coverage vs user needs
-- Authentication requirements from schema
-- Any discrepancies with SDK
-- Additional context for client design
-```
+1. **Validate Schema** - Ensure OpenAPI schema is complete and valid
+2. **Config Strategy** - Finalize oapi-codegen configuration
+3. **Integration Plan** - Document how generated client will be used
+4. **Identify Gaps** - Any manual code needed beyond generation
 
-## Phase 4: Research Coordination
-
-After all agents complete, synthesize findings:
-
-1. **Consolidate Reports** - Merge all agent findings
-2. **Identify Gaps** - What's missing or unclear
-3. **Assess Completeness** - Do we have everything needed?
-4. **Plan Validation** - Cross-check agent findings
-
-## Phase 5: Present Unified Plan
-
-Present comprehensive plan to user:
+## Phase 5: Present Generation Plan
 
 ```
-🔍 RESEARCH COMPLETE
+🔍 OPENAPI ANALYSIS COMPLETE
 
-📋 SDK ANALYSIS:
-- Location: {sdk-path}
-- Module: {module-path} 
-- Version: {version}
-- Interfaces: {list-interfaces}
-- Auth: {auth-method}
+📋 SCHEMA DETAILS:
+- Version: {openapi-version}
+- Endpoints: {endpoint-count}
+- Models: {model-count}
+- Auth: {auth-schemes}
 
-📋 TYPE SYSTEM:
-- Core types: {core-types}
-- Required for endpoints: {endpoint-types}
-- Custom types needed: {custom-types}
+📋 GENERATION PLAN:
+- Tool: oapi-codegen {version}
+- Package: {package-name}
+- Structure: {client|types|server}
+- Config file: oapi-codegen.yaml
 
-📋 JW PATTERNS:
-- Interface pattern: {pattern}
-- OAuth2 setup: {oauth-pattern}
-- Error handling: {error-pattern}
-- Mock strategy: {mock-pattern}
+📋 COMMAND:
+oapi-codegen --config oapi-codegen.yaml {schema-source} > client.gen.go
 
-📋 OPENAPI INSIGHTS:
-- Schema version: {version}
-- Coverage: {coverage-assessment}
-- Auth requirements: {auth-reqs}
+📋 INTEGRATION:
+- Authentication: {auth-pattern}
+- Wrapper needed: {yes/no}
+- Mock strategy: Use generated interfaces
 
-📋 RECOMMENDED APPROACH:
-- Client interface with {X} methods
-- Re-export {Y} core types
-- Use {auth-pattern} for authentication
-- Generate mocks with {mock-strategy}
+📋 NEXT STEPS:
+1. Install oapi-codegen
+2. Create config file
+3. Generate client
+4. Add authentication wrapper if needed
+5. Generate mocks from interfaces
 
-📋 IMPLEMENTATION PLAN:
-1. Create client.go with {specific-methods}
-2. Create types.go with {specific-types}
-3. Setup go.mod with {dependencies}
-4. Generate mocks with {approach}
-
-✅ READY FOR BUILD PHASE
+✅ READY FOR GENERATION
 ```
 
-## Critical Research Rules:
+## Critical Rules:
 
-- 🚨 DEPLOY ALL 4 AGENTS SIMULTANEOUSLY for parallel research
-- 🚨 NEVER modify any source code during research
-- 🚨 CROSS-VALIDATE findings between agents
-- 🚨 IDENTIFY any inconsistencies or gaps
-- 🚨 PRESENT unified, actionable plan to user
+- 🚨 OpenAPI schema is the SINGLE SOURCE OF TRUTH
+- 🚨 Generated code should NOT be manually edited
+- 🚨 Use deterministic generation over manual coding
+- 🚨 Focus on configuration, not implementation
 
 ## Success Criteria:
 
-- [ ] Complete SDK structure documented
-- [ ] All relevant types cataloged
-- [ ] JW patterns identified and documented
-- [ ] OpenAPI schema analyzed
-- [ ] Unified implementation plan ready
-- [ ] User approves plan before build phase
+- [ ] Valid OpenAPI schema analyzed
+- [ ] oapi-codegen configuration ready
+- [ ] Integration pattern documented
+- [ ] Generation command tested
+- [ ] User approves approach
 
-This research phase ensures the build team has perfect information to create an optimal client wrapper.
+This research ensures clean, deterministic client generation from OpenAPI spec.

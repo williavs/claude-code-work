@@ -98,7 +98,9 @@ def main():
             if message:
                 print(message)
             else:
-                print("Error generating completion message")
+                # Don't print error message to stdout - it will be spoken by TTS!
+                # Instead, exit with error code
+                sys.exit(1)
         else:
             prompt_text = " ".join(sys.argv[1:])
             response = prompt_llm(prompt_text)
