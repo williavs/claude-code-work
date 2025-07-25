@@ -1,0 +1,4 @@
+#!/bin/bash
+# Quick launcher for Claude Monitor
+cd "$(dirname "$0")"
+./run-monitor.sh

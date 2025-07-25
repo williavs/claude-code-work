@@ -3,6 +3,8 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "python-dotenv",
+#     "openai",
+#     "requests",
 # ]
 # ///
 
@@ -24,15 +26,185 @@ except ImportError:
     pass  # dotenv is optional
 
 
-def get_completion_messages():
-    """Return list of friendly completion messages."""
-    return [
-        "Work complete!",
-        "All done!",
-        "Task finished!",
-        "Job complete!",
-        "Ready for next task!",
-    ]
+def get_repo_name():
+    """Get repository name from git remote or directory name."""
+    try:
+        # Try git remote method first
+        result = subprocess.run(['git', 'remote', 'get-url', 'origin'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            url = result.stdout.strip()
+            # Extract repo name from various URL formats
+            if url.endswith('.git'):
+                url = url[:-4]
+            return url.split('/')[-1]
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+        pass
+    
+    # Fallback to directory name
+    return os.path.basename(os.getcwd())
+
+
+
+def needs_input_check():
+    """Check if subagent actually needs input."""
+    
+    # Check for failing tests (Node.js projects)
+    if os.path.exists("package.json"):
+        try:
+            result = subprocess.run(['npm', 'test'], capture_output=True, timeout=30)
+            if result.returncode != 0:
+                return "tests failing, needs your review"
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            pass
+    
+    # Check for TODO comments in recent git changes
+    try:
+        result = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1'], 
+                              capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            changed_files = result.stdout.strip().split('\n')
+            
+            for file in changed_files[:3]:  # Check recent files
+                if file and os.path.exists(file) and os.path.isfile(file):
+                    try:
+                        with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+                            content = f.read()
+                            if 'TODO' in content or 'FIXME' in content:
+                                return "has TODOs, needs your input"
+                    except (UnicodeDecodeError, OSError):
+                        continue
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+        pass
+    
+    # Check for TypeScript compilation errors
+    if os.path.exists("tsconfig.json"):
+        try:
+            result = subprocess.run(['npx', 'tsc', '--noEmit'], 
+                                  capture_output=True, timeout=30)
+            if result.returncode != 0:
+                return "has type errors, needs your input"
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            pass
+    
+    return "completed successfully"
+
+
+def generate_ai_completion_message(session_id):
+    """Generate AI-powered completion message using OpenAI based on full hook ecosystem."""
+    try:
+        from openai import OpenAI
+        
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return None
+            
+        # Get data from server only - no fallback allowed
+        from utils.server_client import get_server_context
+        server_context = get_server_context(session_id)
+        
+        # Server must provide context - no fallback
+        ecosystem_data = {
+            "session_id": session_id,
+            "repo_name": server_context.get("repo_name", get_repo_name()),
+            "user_prompt": server_context.get("user_prompt", "task"),
+            "tools_used": server_context.get("tools_used", []),
+            "files_modified": server_context.get("files_modified", []),
+            "total_events": server_context.get("total_events", 0),
+            "events_by_type": server_context.get("events_by_type", {}),
+            "status": needs_input_check()
+        }
+        context = {
+            "user_prompt": server_context.get("user_prompt", "task"),
+            "repo_name": server_context.get("repo_name", get_repo_name()),
+            "working_dir": os.getcwd()
+        }
+        
+        # DEBUG: Show exactly what data the AI is analyzing
+        data_source = "SERVER" if "total_events" in ecosystem_data else "LOCAL"
+        print(f"\n🔍 DEBUG: AI ANALYZING {data_source} DATA FOR SESSION {session_id}:", file=sys.stderr)
+        print(f"📋 USER PROMPT: {context.get('user_prompt', 'none')}", file=sys.stderr)
+        
+        if data_source == "SERVER":
+            print(f"🌐 TOTAL EVENTS: {ecosystem_data.get('total_events', 0)}", file=sys.stderr)
+            print(f"🔧 TOOLS USED: {ecosystem_data.get('tools_used', [])}", file=sys.stderr)
+            print(f"📁 FILES MODIFIED: {len(ecosystem_data.get('files_modified', []))} files", file=sys.stderr)
+            for file in ecosystem_data.get('files_modified', [])[:3]:
+                print(f"    - {file}", file=sys.stderr)
+            
+            events_by_type = ecosystem_data.get('events_by_type', {})
+            for event_type, events in events_by_type.items():
+                print(f"📊 {event_type}: {len(events)} events", file=sys.stderr)
+        else:
+            print(f"🔧 PRE_TOOL_USE: {len(ecosystem_data.get('pre_tool_use', []))} entries", file=sys.stderr)
+            if ecosystem_data.get('pre_tool_use'):
+                for i, entry in enumerate(ecosystem_data.get('pre_tool_use', [])[-3:]):
+                    print(f"    [{i}] {entry.get('tool_name', 'unknown')}: {str(entry.get('tool_input', {}))[:100]}...", file=sys.stderr)
+            
+            print(f"✅ POST_TOOL_USE: {len(ecosystem_data.get('post_tool_use', []))} entries", file=sys.stderr)
+            if ecosystem_data.get('post_tool_use'):
+                for i, entry in enumerate(ecosystem_data.get('post_tool_use', [])[-3:]):
+                    print(f"    [{i}] {entry.get('tool_name', 'unknown')}: {str(entry.get('tool_response', {}))[:100]}...", file=sys.stderr)
+            
+            print(f"📁 GIT STATUS: {ecosystem_data.get('git_status', 'clean')[:200]}", file=sys.stderr)
+            print(f"🔄 RECENT CHANGES: {ecosystem_data.get('recent_changes', [])}", file=sys.stderr)
+        
+        print("=" * 80, file=sys.stderr)
+        
+        # Load system prompt from prompts directory - no fallback allowed
+        from utils.prompts import get_stop_completion_prompt
+        system_prompt = get_stop_completion_prompt()
+
+        # Extract recent user prompts to understand session progression
+        user_prompts = []
+        events_by_type = ecosystem_data.get('events_by_type', {})
+        if 'UserPromptSubmit' in events_by_type:
+            for event in events_by_type['UserPromptSubmit']:
+                if 'payload' in event and 'prompt' in event['payload']:
+                    user_prompts.append(event['payload']['prompt'].strip())
+        
+        # Create enhanced user context with session progression
+        user_context = f"""<input>
+<repository>{ecosystem_data.get('repo_name', 'unknown')}</repository>
+<session_progression>
+{chr(10).join([f"- {prompt}" for prompt in user_prompts[-5:]]) if user_prompts else "- " + ecosystem_data.get('user_prompt', 'task')}
+</session_progression>
+
+<session_context>
+<total_events>{ecosystem_data.get('total_events', 0)}</total_events>
+<tools_used>{json.dumps(ecosystem_data.get('tools_used', []))}</tools_used>
+<files_modified>{json.dumps(ecosystem_data.get('files_modified', []))}</files_modified>
+<session_status>{ecosystem_data.get('status', 'completed')}</session_status>
+</session_context>
+</input>"""
+
+        client = OpenAI(api_key=api_key)
+        
+        response = client.responses.create(
+            model="gpt-4.1",
+            input=user_context,
+            instructions=system_prompt,
+            temperature=0.3,  # More focused for completion messages
+            max_output_tokens=1000,  # Allow room for proper response but guardrails ensure brevity
+            store=False
+        )
+        
+        if response.output and len(response.output) > 0:
+            message = response.output[0]
+            if message.content and len(message.content) > 0:
+                return message.content[0].text.strip().replace('"', '')
+        
+        return None
+        
+    except Exception as e:
+        print(f"AI completion generation error: {e}", file=sys.stderr)
+        return None
+
+
+def get_contextual_completion_message(session_id):
+    """Generate contextual completion message using AI and server context only."""
+    
+    return generate_ai_completion_message(session_id)
 
 
 def get_tts_script_path():
@@ -40,7 +212,6 @@ def get_tts_script_path():
     Determine which TTS script to use based on available API keys.
     Priority order: ElevenLabs > OpenAI > pyttsx3
     """
-    # Get current script directory and construct utils/tts path
     script_dir = Path(__file__).parent
     tts_dir = script_dir / "utils" / "tts"
 
@@ -64,80 +235,6 @@ def get_tts_script_path():
     return None
 
 
-def get_llm_completion_message():
-    """
-    Generate completion message using available LLM services.
-    Priority order: OpenAI > Anthropic > fallback to random message
-
-    Returns:
-        str: Generated or fallback completion message
-    """
-    # Get current script directory and construct utils/llm path
-    script_dir = Path(__file__).parent
-    llm_dir = script_dir / "utils" / "llm"
-
-    # Try Anthropic second
-    if os.getenv("ANTHROPIC_API_KEY"):
-        anth_script = llm_dir / "anth.py"
-        if anth_script.exists():
-            try:
-                result = subprocess.run(
-                    ["uv", "run", str(anth_script), "--completion"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return result.stdout.strip()
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-                pass
-
-    # Try OpenAI first (highest priority)
-    if os.getenv("OPENAI_API_KEY"):
-        oai_script = llm_dir / "oai.py"
-        if oai_script.exists():
-            try:
-                result = subprocess.run(
-                    ["uv", "run", str(oai_script), "--completion"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    return result.stdout.strip()
-            except (subprocess.TimeoutExpired, subprocess.SubprocessError):
-                pass
-
-    # Fallback to random predefined message
-    messages = get_completion_messages()
-    return random.choice(messages)
-
-
-def announce_completion():
-    """Announce completion using the best available TTS service."""
-    try:
-        tts_script = get_tts_script_path()
-        if not tts_script:
-            return  # No TTS scripts available
-
-        # Get completion message (LLM-generated or fallback)
-        completion_message = get_llm_completion_message()
-
-        # Call the TTS script with the completion message
-        subprocess.run(
-            ["uv", "run", tts_script, completion_message],
-            capture_output=True,  # Suppress output
-            timeout=10,  # 10-second timeout
-        )
-
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
-        # Fail silently if TTS encounters issues
-        pass
-    except Exception:
-        # Fail silently for any other errors
-        pass
-
-
 def main():
     try:
         # Parse command line arguments
@@ -152,7 +249,6 @@ def main():
 
         # Extract required fields
         session_id = input_data.get("session_id", "")
-        stop_hook_active = input_data.get("stop_hook_active", False)
 
         # Ensure session log directory exists
         log_dir = ensure_session_log_dir(session_id)
@@ -198,8 +294,25 @@ def main():
                 except Exception:
                     pass  # Fail silently
 
-        # Announce completion via TTS
-        announce_completion()
+        # Generate dynamic completion message based on original request
+        session_id = input_data.get('session_id', 'unknown')
+        
+        # Get AI-generated contextual completion message
+        completion_message = get_contextual_completion_message(session_id)
+        print(f"\n🎯 {completion_message}")
+        
+        # Announce via TTS
+        tts_script = get_tts_script_path()
+        if tts_script:
+            try:
+                subprocess.run(
+                    ["uv", "run", tts_script, completion_message],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+            except Exception:
+                pass  # Fail silently
 
         sys.exit(0)
 

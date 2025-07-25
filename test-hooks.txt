@@ -1,0 +1,5 @@
+This is a test file to trigger hook events.
+The comprehensive system test is running.
+All hooks should fire and generate TTS output.
+
+UPDATED: System test in progress - checking all components.

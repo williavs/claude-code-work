@@ -1,17 +1,45 @@
-# Multi-Agent Observability System
+# Claude Code Multi-Agent Observability & Autonomous Development Hub
 
-Real-time monitoring and visualization for Claude Code agents through comprehensive hook event tracking. You can watch the [full breakdown here](https://youtu.be/9ijnN985O_c).
+A comprehensive system for monitoring Claude Code agents with real-time observability, plus integration with cutting-edge autonomous AI development tools. This repository combines multi-agent observability with the revolutionary Tmux Orchestrator for 24/7 autonomous development.
 
 ## 🎯 Overview
 
-This system provides complete observability into Claude Code agent behavior by capturing, storing, and visualizing Claude Code [Hook events](https://docs.anthropic.com/en/docs/claude-code/hooks) in real-time. It enables monitoring of multiple concurrent agents with session tracking, event filtering, and live updates. 
+This system combines two powerful capabilities:
+
+### 🔍 **Multi-Agent Observability System**
+Complete observability into Claude Code agent behavior by capturing, storing, and visualizing Claude Code [Hook events](https://docs.anthropic.com/en/docs/claude-code/hooks) in real-time. Monitor multiple concurrent agents with session tracking, event filtering, and live updates.
+
+### 🤖 **Autonomous Development with Tmux Orchestrator**
+Revolutionary AI agent management system that enables **24/7 autonomous software development**. Deploy self-managing AI teams that work continuously, schedule their own check-ins, and coordinate across multiple projects even when you're asleep.
 
 <img src="images/app.png" alt="Multi-Agent Observability Dashboard" style="max-width: 800px; width: 100%;">
 
+## 🚀 **What Makes This Special**
+
+### **Autonomous AI Development Teams**
+- **Self-scheduling agents** that work 24/7 in persistent tmux sessions
+- **Three-tier hierarchy**: Orchestrator → Project Managers → Engineers
+- **Cross-project coordination** with shared knowledge and learnings
+- **Automatic git commits** every 30 minutes with quality enforcement
+- **Continues working when laptop is closed** - true autonomous development
+
+### **Complete Development Observability** 
+- **Real-time monitoring** of all Claude Code agent activities
+- **Session tracking** across multiple concurrent development projects
+- **Event filtering and visualization** with live pulse charts
+- **Chat transcript capture** with full conversation history
+- **ElevenLabs voice notifications** when tasks complete
+
 ## 🏗️ Architecture
 
+### **Observability Flow**
 ```
 Claude Agents → Hook Scripts → HTTP POST → Bun Server → SQLite → WebSocket → Vue Client
+```
+
+### **Autonomous Development Flow**
+```
+Orchestrator → Project Managers → Engineers → Tmux Sessions → Self-Scheduling → 24/7 Development
 ```
 
 ![Agent Data Flow Animation](images/AgentDataFlowV2.gif)
@@ -26,6 +54,10 @@ Before getting started, ensure you have the following installed:
 - **Anthropic API Key** - Set as `ANTHROPIC_API_KEY` environment variable
 - **OpenAI API Key** (optional) - For multi-model support with just-prompt MCP tool
 - **ElevenLabs API Key** (optional) - For audio features
+
+### 🐧 Complete Ubuntu Setup Guide
+
+For a complete step-by-step Ubuntu installation guide including all dependencies, system configuration, and troubleshooting, see the **[Ubuntu Setup Guide](config/ubuntu-setup-guide.md)** in the `config/` directory.
 
 ### Configure .claude Directory
 
@@ -98,7 +130,57 @@ To integrate the observability hooks into your projects:
 
 Now your project will send events to the observability system whenever Claude Code performs actions.
 
-## 🚀 Quick Start
+## 🤖 Autonomous Development with Tmux Orchestrator
+
+The included **Tmux Orchestrator** enables truly autonomous AI development teams that work 24/7:
+
+### **Quick Start - Autonomous Development**
+
+1. **Deploy a Simple Autonomous Team:**
+   ```bash
+   # Start tmux session for a project
+   tmux new-session -s my-project -c "/path/to/project"
+   
+   # Start Claude as Project Manager in window 0
+   claude
+   
+   # Brief the PM
+   "You are a Project Manager. Create an engineer in window 1 to implement 
+   user authentication. Schedule check-ins every 30 minutes with:
+   ./Tmux-Orchestrator/schedule_with_note.sh 30 'Check auth progress'"
+   ```
+
+2. **Deploy Full Orchestrator:**
+   ```bash
+   # Start orchestrator session
+   tmux new-session -s orchestrator
+   claude
+   
+   # Brief as orchestrator
+   "You are the Orchestrator. Set up project managers for:
+   1. Frontend (React app) - Add dashboard
+   2. Backend (API) - Optimize queries
+   Schedule yourself to check every hour."
+   ```
+
+### **Key Autonomous Features**
+
+- **🔄 Self-Scheduling**: Agents schedule their own work using `schedule_with_note.sh`
+- **👥 Team Hierarchy**: Orchestrator → Project Managers → Engineers
+- **💾 Persistent Work**: Continues in tmux sessions even when disconnected
+- **🔄 Auto-Commits**: Mandatory git commits every 30 minutes
+- **📊 Cross-Project Intelligence**: Agents share learnings between projects
+- **🎯 Quality Enforcement**: Project Managers enforce testing and code standards
+
+### **Autonomous Development Benefits**
+
+- **24/7 Development**: Your codebase improves while you sleep
+- **Parallel Projects**: Multiple agent teams working simultaneously  
+- **Quality Assurance**: Built-in PM oversight and git discipline
+- **Continuous Learning**: Agents accumulate knowledge in `LEARNINGS.md`
+- **Observable**: All autonomous activity appears in your observability dashboard
+
+## 🚀 Quick Start - Observability
 
 You can quickly view how this works by running this repositories .claude setup.
 
@@ -122,7 +204,22 @@ cp -R .claude <directory of your codebase you want to emit events from>
 ```
 claude-code-hooks-multi-agent-observability/
 │
-├── apps/                    # Application components
+├── Tmux-Orchestrator/      # 24/7 Autonomous Development System
+│   ├── README.md           # Complete orchestrator documentation
+│   ├── CLAUDE.md           # Agent behavior instructions & best practices
+│   ├── LEARNINGS.md        # Accumulated knowledge base
+│   ├── schedule_with_note.sh    # Self-scheduling system
+│   ├── send-claude-message.sh  # Inter-agent communication
+│   ├── tmux_utils.py       # Tmux interaction utilities
+│   └── Examples/           # Visual examples of autonomous teams
+│
+├── claude-flow/            # Advanced AI workflow orchestration
+│   ├── benchmark/          # Performance testing suite
+│   ├── docs/              # Comprehensive documentation
+│   ├── examples/          # Workflow examples and demos
+│   └── src/               # Core orchestration engine
+│
+├── apps/                   # Observability System Components
 │   ├── server/             # Bun TypeScript server
 │   │   ├── src/
 │   │   │   ├── index.ts    # Main server with HTTP/WebSocket endpoints
@@ -267,6 +364,85 @@ The `UserPromptSubmit` hook captures every user prompt before Claude processes i
 - Summary appears on the right side when AI summarization is enabled
 - Useful for tracking user intentions and conversation flow
 
+## 🔊 AI-Powered Contextual TTS System
+
+The observability system includes an advanced AI-powered Text-to-Speech (TTS) completion system that provides intelligent, contextual voice notifications when agents complete tasks.
+
+### **Key Features**
+
+- **🤖 AI-Generated Messages**: Uses OpenAI GPT-4.1 to generate specific completion messages based on actual work performed
+- **🎯 Context-Aware**: Analyzes session context, tool usage, and subagent details to create accurate announcements
+- **🔄 Multiple TTS Providers**: Supports ElevenLabs (premium), OpenAI TTS, and pyttsx3 (local fallback)
+- **📊 Rich Hook Data**: Leverages Claude Code's complete hook input structure for precise messaging
+
+### **How It Works**
+
+1. **Event Capture**: Hooks capture detailed completion context (tool usage, session data, subagent details)
+2. **AI Analysis**: OpenAI GPT-4.1 analyzes the context to understand what was actually accomplished
+3. **Smart Messaging**: Generates specific messages like "general-purpose agent searched codebase for auth patterns" instead of generic "task completed"
+4. **Voice Delivery**: Announces completion through best available TTS provider
+
+### **Supported Completion Types**
+
+| Hook Event | Message Format | Example |
+|------------|----------------|---------|
+| `Stop` | `agent in {project} {accomplishment}` | "agent in webapp aligned tts approach" |
+| `SubagentStop` | `{subagent_type} agent {action} {target} for {purpose}` | "search agent found 15 files matching criteria" |
+| `Notification` | `{agent_name} wants to {action} for {reason}` | "code agent wants to edit main.py for bugfix" |
+
+### **Configuration**
+
+TTS is automatically enabled when you have the appropriate API keys:
+
+```bash
+# Priority order: ElevenLabs > OpenAI > pyttsx3
+ELEVENLABS_API_KEY=your_key_here   # Highest quality (recommended)
+OPENAI_API_KEY=your_key_here       # Good quality fallback
+# pyttsx3 used as local fallback (no key required)
+```
+
+### **Enhanced Subagent Completion**
+
+The `SubagentStop` hook now uses Claude Code's rich hook input data:
+
+- **subagent_type**: Type of specialized agent (general-purpose, code-reviewer, etc.)
+- **description**: Brief task description
+- **prompt**: Full task prompt
+- **tool_response**: Agent's complete response
+
+This enables highly specific completion messages that accurately describe what each subagent accomplished, providing valuable feedback about autonomous agent activities.
+
+## 🔗 **System Integration: Observability + Autonomous Development**
+
+### **Monitoring Autonomous Teams**
+
+The observability system can monitor your autonomous development teams in real-time:
+
+1. **Deploy both systems together:**
+   ```bash
+   # Terminal 1: Start observability system
+   ./scripts/start-system.sh
+   
+   # Terminal 2: Start autonomous development
+   cd Tmux-Orchestrator
+   tmux new-session -s orchestrator
+   claude  # Brief as orchestrator
+   ```
+
+2. **Watch autonomous agents work:**
+   - Visit `http://localhost:5173` to see the observability dashboard
+   - Every autonomous agent action appears in real-time
+   - Track commits, tool usage, and cross-agent communication
+   - Get ElevenLabs voice notifications when autonomous tasks complete
+
+### **Benefits of Integrated System**
+
+- **📊 Complete Visibility**: See exactly what your autonomous teams are doing
+- **🔔 Instant Notifications**: Voice alerts when agents complete major features
+- **📈 Development Analytics**: Track autonomous productivity and patterns
+- **🐛 Debug Autonomous Issues**: Identify when agents need intervention
+- **📋 Autonomous Accountability**: Full audit trail of 24/7 development work
+
 ## 🔌 Integration
 
 ### For New Projects
@@ -350,11 +526,95 @@ Copy `.env.sample` to `.env` in the project root and fill in your API keys:
 - Validates all inputs before execution
 - No external dependencies for core functionality
 
+## 🔧 Claude Code Configuration Management System
+
+This system includes a powerful zsh-based configuration management toolkit that enables centralized development and distribution of Claude Code configurations across multiple projects.
+
+### **Overview**
+
+A command-line toolkit that manages Claude Code configurations across multiple projects, enabling centralized monitoring and distributed command development with a feedback loop where innovation in any project benefits all projects.
+
+### **Directory Structure**
+
+```
+Master Configuration:
+/Users/wvansickle/willycode/claude-code-hooks-multi-agent-observability/.claude/
+├── commands/     # Custom Claude commands (.md files)
+├── hooks/        # Event hooks for monitoring
+│   ├── utils/    # Hook utilities
+│   └── logs/     # Runtime logs (ignored by sync)
+└── settings.json # Hook configuration
+
+Global Configuration:
+/Users/wvansickle/.claude/settings.json  # System-wide Claude settings
+
+Project Configurations:
+[any_project]/.claude/
+├── commands/
+├── hooks/
+└── settings.json
+```
+
+### **Command Reference**
+
+| Command | Purpose | Description |
+|---------|---------|-------------|
+| `cc-jw` | **Initialize new project** | Copies entire master .claude directory to current location |
+| `cc-u` | **Pull commands selectively** | Shows only NEW commands, multi-select interface |
+| `cc-gather` | **Harvest new commands** | Scans entire willycode directory for new .md files |
+| `cc-u-hooks` | **Update current project hooks** | Shows diff and updates hooks with confirmation |
+| `cc-u-hooks-global` | **Update all project hooks** | Batch updates all projects to match master hooks |
+| `cc-u-settings-global` | **Update all settings.json** | Propagates master configuration everywhere |
+
+### **Data Flow & Innovation Loop**
+
+```
+New Project Setup:
+cc-jw → Full .claude copy → Ready to work
+
+Command Development:
+Create .md file → cc-gather → Master updated → cc-u → Deploy to other projects
+
+Hook Updates:
+Master hooks modified → cc-u-hooks (single) or cc-u-hooks-global (all) → Projects updated
+
+Settings Propagation:
+Master settings.json → cc-u-settings-global → All projects use same hooks
+```
+
+### **Key Design Principles**
+
+- **No Accidental Overwrites**: Commands only add new files to master, never replace
+- **Preview Changes**: Hook updates show diffs before applying
+- **Selective Sync**: Can choose specific commands to pull
+- **Centralized Innovation**: Any project can contribute new commands
+- **Distributed Execution**: Same hooks run everywhere, report to one place
+
+### **Monitoring Integration**
+
+- Hook scripts use absolute paths
+- All events route to localhost:4000
+- Single server collects data from all Claude Code sessions
+- SQLite database aggregates cross-project analytics
+- Dashboard shows unified activity view
+
+### **Safety Features**
+
+- Always ignored during operations: `logs/`, `__pycache__/`, master directory itself
+- Safety checks prevent running in master directory
+- Validates directory existence before operations
+- Creates missing directories as needed
+- Confirmation prompts for destructive operations
+- Backup creation for settings.json updates
+
+This system creates a centralized command and configuration development hub while enabling distributed execution across all your projects, with complete observability into the entire ecosystem.
+
 ## 📊 Technical Stack
 
 - **Server**: Bun, TypeScript, SQLite
 - **Client**: Vue 3, TypeScript, Vite, Tailwind CSS
 - **Hooks**: Python 3.8+, Astral uv, TTS (ElevenLabs or OpenAI), LLMs (Claude or OpenAI)
+- **Configuration Management**: Zsh, native Unix tools for cross-project sync
 - **Communication**: HTTP REST, WebSocket
 
 ## 🔧 Troubleshooting

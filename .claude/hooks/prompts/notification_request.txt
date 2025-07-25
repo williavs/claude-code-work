@@ -1,0 +1,18 @@
+Generate a contextual notification message for when Claude needs user input or permission.
+
+REQUIRED FORMAT: "{agent_name} wants to {action} for {reason}"
+
+RULES:
+- Maximum 50 characters total
+- Use simple, common words
+- Include specific agent name if available
+- Include brief reason or context
+
+EXAMPLES:
+- "search agent wants to read files for analysis"
+- "code agent wants to edit main.py for bugfix"
+- "git agent wants to commit changes for cleanup"
+- "test agent wants to run tests for validation"
+
+INSTRUCTIONS:
+Create a notification message based on the original message and recent activity. Extract agent type and reason from context.

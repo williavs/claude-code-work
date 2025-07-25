@@ -1,4 +1,4 @@
-import { initDatabase, insertEvent, getFilterOptions, getRecentEvents } from './db';
+import { initDatabase, insertEvent, getFilterOptions, getRecentEvents, getSessionEvents } from './db';
 import type { HookEvent } from './types';
 import { 
   createTheme, 
@@ -88,6 +88,75 @@ const server = Bun.serve({
       const limit = parseInt(url.searchParams.get('limit') || '100');
       const events = getRecentEvents(limit);
       return new Response(JSON.stringify(events), {
+        headers: { ...headers, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // GET /api/sessions/:sessionId - Get session context
+    const sessionMatch = url.pathname.match(/^\/api\/sessions\/([^\/]+)$/);
+    if (sessionMatch && req.method === 'GET') {
+      const sessionId = sessionMatch[1];
+      const events = getSessionEvents(sessionId);
+      
+      // Organize events by type for easier AI analysis
+      const context = {
+        session_id: sessionId,
+        total_events: events.length,
+        events_by_type: {} as Record<string, any[]>,
+        user_prompt: null,
+        tools_used: [] as string[],
+        files_modified: [] as string[],
+        repo_name: null,
+        git_status: null
+      };
+      
+      // Group events by type and extract key information
+      events.forEach(event => {
+        const eventType = event.hook_event_type;
+        if (!context.events_by_type[eventType]) {
+          context.events_by_type[eventType] = [];
+        }
+        context.events_by_type[eventType].push(event);
+        
+        // Extract user prompt from UserPromptSubmit - use second to last for completion context
+        if (eventType === 'UserPromptSubmit' && event.payload.prompt) {
+          // Store all prompts temporarily
+          if (!context.all_prompts) context.all_prompts = [];
+          context.all_prompts.push(event.payload.prompt);
+        }
+        
+        // Extract tools used from PreToolUse
+        if (eventType === 'PreToolUse' && event.payload.tool_name) {
+          if (!context.tools_used.includes(event.payload.tool_name)) {
+            context.tools_used.push(event.payload.tool_name);
+          }
+        }
+        
+        // Extract files modified from PostToolUse
+        if (eventType === 'PostToolUse' && event.payload.tool_response) {
+          const response = event.payload.tool_response;
+          if (response.filePath && !context.files_modified.includes(response.filePath)) {
+            context.files_modified.push(response.filePath);
+          }
+        }
+        
+        // Extract repo name and git status from any event payload
+        if (event.payload.cwd && !context.repo_name) {
+          context.repo_name = event.payload.cwd.split('/').pop();
+        }
+      });
+      
+      // Set user_prompt to second-to-last prompt for completion context
+      if (context.all_prompts && context.all_prompts.length > 1) {
+        context.user_prompt = context.all_prompts[context.all_prompts.length - 2];
+      } else if (context.all_prompts && context.all_prompts.length === 1) {
+        context.user_prompt = context.all_prompts[0];
+      }
+      
+      // Clean up temporary array
+      delete context.all_prompts;
+      
+      return new Response(JSON.stringify(context), {
         headers: { ...headers, 'Content-Type': 'application/json' }
       });
     }

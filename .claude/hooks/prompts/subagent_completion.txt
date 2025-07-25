@@ -1,0 +1,26 @@
+Generate a rich subagent completion message using available session context.
+
+AVAILABLE FIELDS FROM HOOK INPUT:
+- session_id: Current session identifier
+- tool_name: "Task" (always for subagents)
+- tool_input.description: Brief task description
+- tool_input.prompt: Full task prompt
+- tool_input.subagent_type: Type of specialized agent
+- tool_response: Agent's final response
+
+REQUIRED FORMAT: "{subagent_type} agent {action} {target} for {purpose}"
+
+RULES:
+- Maximum 60 characters total
+- Use simple, common words
+- Extract specific action from tool_input or tool_response
+- Include purpose/reason when available
+
+EXAMPLES:
+- "general-purpose agent searched codebase for auth patterns"
+- "code-reviewer agent analyzed tests for coverage gaps"
+- "search agent found 15 files matching user criteria"
+- "research agent gathered api docs for integration"
+
+INSTRUCTIONS:
+Use tool_input.subagent_type, tool_input.description, and tool_response to create specific completion messages about what this specialized agent accomplished.

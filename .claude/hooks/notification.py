@@ -3,23 +3,30 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "python-dotenv",
+#     "openai",
+#     "requests",
 # ]
 # ///
+
+"""
+Notification hook for AI-powered contextual permission requests.
+Generates dynamic TTS notifications based on current activity.
+"""
 
 import argparse
 import json
 import os
 import sys
 import subprocess
-import random
 from pathlib import Path
 from utils.constants import ensure_session_log_dir
+from utils.server_client import get_server_context
 
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # dotenv is optional
+    pass
 
 
 def get_tts_script_path():
@@ -51,36 +58,86 @@ def get_tts_script_path():
     return None
 
 
-def announce_notification():
-    """Announce that the agent needs user input."""
+def generate_dynamic_notification(session_id, message):
+    """Generate dynamic notification message using hook ecosystem data."""
+    # Import OpenAI directly like stop hook does
     try:
-        tts_script = get_tts_script_path()
-        if not tts_script:
-            return  # No TTS scripts available
-        
-        # Get engineer name if available
-        engineer_name = os.getenv('ENGINEER_NAME', '').strip()
-        
-        # Create notification message with 30% chance to include name
-        if engineer_name and random.random() < 0.3:
-            notification_message = f"{engineer_name}, your agent needs your input"
+        from openai import OpenAI
+    except ImportError:
+        raise ImportError("OpenAI package not available")
+    
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not found")
+    
+    # Get repo name
+    try:
+        result = subprocess.run(['git', 'config', '--get', 'remote.origin.url'], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            repo_url = result.stdout.strip()
+            repo_name = repo_url.split('/')[-1].replace('.git', '')
         else:
-            notification_message = "Your agent needs your input"
-        
-        # Call the TTS script with the notification message
-        subprocess.run([
-            "uv", "run", tts_script, notification_message
-        ], 
-        capture_output=True,  # Suppress output
-        timeout=10  # 10-second timeout
-        )
-        
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
-        # Fail silently if TTS encounters issues
-        pass
-    except Exception:
-        # Fail silently for any other errors
-        pass
+            repo_name = os.path.basename(os.getcwd())
+    except:
+        repo_name = os.path.basename(os.getcwd())
+    
+    # Get session context from server only - no fallback allowed
+    server_context = get_server_context(session_id)
+    
+    # Load system prompt from centralized prompts directory
+    from utils.prompts import get_notification_request_prompt
+    system_prompt = get_notification_request_prompt()
+    
+    # Create simplified user context - focus on the current action
+    user_context = f"""<input>
+    <repository>{repo_name}</repository>
+    <original_message>{message}</original_message>
+    <session_context>
+    <user_prompt>{server_context.get('user_prompt', 'task')}</user_prompt>
+    <tools_used>{json.dumps(server_context.get('tools_used', []))}</tools_used>
+    </session_context>
+    </input>"""
+    
+    client = OpenAI(api_key=api_key)
+    
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=user_context,
+        instructions=system_prompt,
+        temperature=0.7,
+        max_output_tokens=40,
+        store=False
+    )
+    
+    if response.output and len(response.output) > 0:
+        message = response.output[0]
+        if message.content and len(message.content) > 0:
+            return message.content[0].text.strip().replace('"', '')
+    
+    raise RuntimeError("AI completion failed")
+
+
+def announce_notification(session_id, message):
+    """Announce that the agent needs user input with dynamic messaging."""
+    tts_script = get_tts_script_path()
+    if not tts_script:
+        print("🔇 No TTS script available")
+        return
+    
+    # Generate dynamic notification message
+    notification_message = generate_dynamic_notification(session_id, message)
+    
+    # Print to terminal
+    print(f"🔔 {notification_message}")
+    
+    # Call the TTS script with the notification message
+    subprocess.run([
+        "uv", "run", tts_script, notification_message
+    ], 
+    capture_output=True,  # Suppress output
+    timeout=10  # 10-second timeout
+    )
 
 
 def main():
@@ -120,7 +177,7 @@ def main():
         # Announce notification via TTS only if --notify flag is set
         # Skip TTS for the generic "Claude is waiting for your input" message
         if args.notify and input_data.get('message') != 'Claude is waiting for your input':
-            announce_notification()
+            announce_notification(session_id, input_data.get('message', ''))
         
         sys.exit(0)
         

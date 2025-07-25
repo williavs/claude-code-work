@@ -1,21 +1,21 @@
 <template>
   <div class="bg-gradient-to-r from-[var(--theme-bg-primary)] to-[var(--theme-bg-secondary)] px-3 py-4 mobile:py-3 shadow-lg">
-    <div class="flex items-center justify-between mb-3 mobile:flex-col mobile:space-y-2 mobile:items-start">
+    <div class="flex items-center justify-between mb-3">
       <h3 class="text-base mobile:text-sm font-bold text-[var(--theme-primary)] drop-shadow-sm flex items-center">
         <span class="mr-1.5 text-xl mobile:text-base">📊</span>
         Live Activity Pulse
       </h3>
-      <div class="flex gap-1.5 mobile:w-full mobile:justify-center" role="tablist" aria-label="Time range selector">
+      <div class="flex gap-1 items-center" role="tablist" aria-label="Time range selector">
         <button
           v-for="(range, index) in timeRanges"
           :key="range"
           @click="setTimeRange(range)"
           @keydown="handleTimeRangeKeyDown($event, index)"
           :class="[
-            'px-3 py-1.5 mobile:px-4 mobile:py-2 text-sm mobile:text-base font-bold rounded-lg transition-all duration-200 min-w-[30px] min-h-[30px] flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 border',
+            'px-2 py-0.5 text-xs font-medium rounded transition-all duration-200',
             timeRange === range
-              ? 'bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary-light)] text-white border-[var(--theme-primary-dark)] drop-shadow-md'
-              : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-primary)] border-[var(--theme-border-primary)] hover:bg-[var(--theme-bg-quaternary)] hover:border-[var(--theme-primary)]'
+              ? 'bg-[var(--theme-primary)] text-white'
+              : 'bg-[var(--theme-bg-tertiary)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-bg-quaternary)] hover:text-[var(--theme-text-primary)]'
           ]"
           role="tab"
           :aria-selected="timeRange === range"
