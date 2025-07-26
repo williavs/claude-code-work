@@ -28,8 +28,18 @@ tmux send-keys -t $SESSION_NAME:0.1 'tail -f logs/server.log' C-m
 # Pane 2 (top-right): Main Claude
 tmux send-keys -t $SESSION_NAME:0.2 'claude' C-m
 
-# Pane 3 (bottom-right): Event testing / commands
-tmux send-keys -t $SESSION_NAME:0.3 'echo "=== Command Pane ===" && echo "Test event: curl -X POST http://localhost:4000/events -H \"Content-Type: application/json\" -d \"{\\\"source_app\\\": \\\"test\\\", \\\"session_id\\\": \\\"test-123\\\", \\\"hook_event_type\\\": \\\"PreToolUse\\\", \\\"payload\\\": {\\\"tool_name\\\": \\\"Test\\\"}}\"" && echo "Dashboard: http://localhost:5173"' C-m
+# Pane 3 (bottom-right): File explorer
+# Check which file manager is available
+if command -v ranger &> /dev/null; then
+    tmux send-keys -t $SESSION_NAME:0.3 'ranger' C-m
+elif command -v lf &> /dev/null; then
+    tmux send-keys -t $SESSION_NAME:0.3 'lf' C-m
+elif command -v mc &> /dev/null; then
+    tmux send-keys -t $SESSION_NAME:0.3 'mc' C-m
+else
+    # Fallback to a tree view with watch for live updates
+    tmux send-keys -t $SESSION_NAME:0.3 'echo "📁 File Explorer (install ranger for better experience: sudo apt install ranger)" && echo "" && watch -n 2 "tree -L 2 -C --dirsfirst || ls -la"' C-m
+fi
 
 # Window 2: Additional Claude agents (2x2 grid)
 tmux new-window -t $SESSION_NAME -n "agents" -c "$ECOSYSTEM_HOME"
@@ -58,7 +68,7 @@ tmux select-window -t $SESSION_NAME:0
 echo "✨ Multi-view setup complete!"
 echo ""
 echo "Windows:"
-echo "  0: main    - Monitoring (CLI monitor, logs, main Claude, commands)"
+echo "  0: main    - Monitoring (CLI monitor, logs, main Claude, file explorer)"
 echo "  1: agents  - 4 Claude agents in grid layout"
 echo "  2: dashboard - Vue dashboard server"
 echo ""
