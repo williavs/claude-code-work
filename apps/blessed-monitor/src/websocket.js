@@ -28,8 +28,20 @@ export class WebSocketClient extends EventEmitter {
 
       this.ws.on('message', (data) => {
         try {
-          const event = JSON.parse(data.toString());
-          this.emit('event', event);
+          const message = JSON.parse(data.toString());
+          
+          // Handle server message format
+          if (message.type === 'initial') {
+            // Initial batch of events
+            const events = Array.isArray(message.data) ? message.data : [];
+            events.forEach(event => this.emit('event', event));
+          } else if (message.type === 'event') {
+            // Single new event
+            this.emit('event', message.data);
+          } else {
+            // Fallback for direct event format
+            this.emit('event', message);
+          }
         } catch (error) {
           this.emit('error', new Error(`Failed to parse message: ${error.message}`));
         }

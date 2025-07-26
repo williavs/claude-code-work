@@ -15,23 +15,25 @@ export class EventStore {
   }
 
   addEvent(event) {
-    // Validate and sanitize event
-    const sanitizedEvent = {
+    // Normalize property names from snake_case to camelCase for internal use
+    const normalizedEvent = {
       timestamp: event.timestamp || new Date().toISOString(),
-      sourceApp: event.sourceApp || event.source_app || 'unknown',
-      sessionId: event.sessionId || event.session_id || 'unknown',
-      hookEventType: event.hookEventType || event.hook_event_type || 'Unknown',
+      sourceApp: event.source_app || event.sourceApp || 'unknown',
+      sessionId: event.session_id || event.sessionId || 'unknown',
+      hookEventType: event.hook_event_type || event.hookEventType || 'Unknown',
       payload: event.payload || {},
-      ...event  // Include any other properties
+      chat: event.chat || [],
+      summary: event.summary || '',
+      id: event.id
     };
     
     // Add event to the store
-    this.events.push(sanitizedEvent);
+    this.events.push(normalizedEvent);
     
     // Update available filter values
-    if (sanitizedEvent.sourceApp) this.availableFilters.sourceApp.add(sanitizedEvent.sourceApp);
-    if (sanitizedEvent.sessionId) this.availableFilters.sessionId.add(sanitizedEvent.sessionId);
-    if (sanitizedEvent.hookEventType) this.availableFilters.eventType.add(sanitizedEvent.hookEventType);
+    if (normalizedEvent.sourceApp) this.availableFilters.sourceApp.add(normalizedEvent.sourceApp);
+    if (normalizedEvent.sessionId) this.availableFilters.sessionId.add(normalizedEvent.sessionId);
+    if (normalizedEvent.hookEventType) this.availableFilters.eventType.add(normalizedEvent.hookEventType);
     
     // Limit the number of stored events
     if (this.events.length > this.maxEvents) {
