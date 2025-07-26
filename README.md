@@ -1,203 +1,67 @@
-# Claude Code Multi-Agent Observability & Autonomous Development Hub
+# Claude Code Multi-Agent Ecosystem
 
-A comprehensive system for monitoring Claude Code agents with real-time observability, plus integration with cutting-edge autonomous AI development tools. This repository combines multi-agent observability with the revolutionary Tmux Orchestrator for 24/7 autonomous development.
+A personal collection of recently released Claude Code tools and integrations, assembled to create a powerful AI development environment. This is more of a curated mashup than a polished product - it's what I use for my own development workflow across Mac and Ubuntu environments.
 
-## 🎯 Overview
+## 🎯 What This Is
 
-This system combines two powerful capabilities:
+This repository brings together several cutting-edge tools:
 
-### 🔍 **Multi-Agent Observability System**
-Complete observability into Claude Code agent behavior by capturing, storing, and visualizing Claude Code [Hook events](https://docs.anthropic.com/en/docs/claude-code/hooks) in real-time. Monitor multiple concurrent agents with session tracking, event filtering, and live updates.
-
-### 🤖 **Autonomous Development with Tmux Orchestrator**
-Revolutionary AI agent management system that enables **24/7 autonomous software development**. Deploy self-managing AI teams that work continuously, schedule their own check-ins, and coordinate across multiple projects even when you're asleep.
-
-<img src="images/app.png" alt="Multi-Agent Observability Dashboard" style="max-width: 800px; width: 100%;">
-
-## 🚀 **What Makes This Special**
-
-### **Autonomous AI Development Teams**
-- **Self-scheduling agents** that work 24/7 in persistent tmux sessions
-- **Three-tier hierarchy**: Orchestrator → Project Managers → Engineers
-- **Cross-project coordination** with shared knowledge and learnings
-- **Automatic git commits** every 30 minutes with quality enforcement
-- **Continues working when laptop is closed** - true autonomous development
-
-### **Complete Development Observability** 
-- **Real-time monitoring** of all Claude Code agent activities
-- **Session tracking** across multiple concurrent development projects
-- **Event filtering and visualization** with live pulse charts
-- **Chat transcript capture** with full conversation history
-- **ElevenLabs voice notifications** when tasks complete
+- **Multi-Agent Observability** - Real-time monitoring of Claude Code activities
+- **Claude Flow** - 64 specialized AI agents (with memory optimization)
+- **Claude Code Router** - Intelligent model switching between AI providers
+- **Tmux Orchestrator** - 24/7 autonomous agent management
+- **Git Worktrees Config** - Parallel development workflows
+- **CLI Monitor** - Beautiful terminal UI for event tracking
 
 ## 🏗️ Architecture
 
-### **Observability Flow**
 ```
 Claude Agents → Hook Scripts → HTTP POST → Bun Server → SQLite → WebSocket → Vue Client
 ```
 
-### **Autonomous Development Flow**
-```
-Orchestrator → Project Managers → Engineers → Tmux Sessions → Self-Scheduling → 24/7 Development
-```
+![Multi-Agent Observability Dashboard](images/Screenshot%202025-07-25%20at%208.21.10%20PM.png)
 
-![Agent Data Flow Animation](images/AgentDataFlowV2.gif)
+## 🚀 Quick Start
 
-## 📋 Setup Requirements
-
-Before getting started, ensure you have the following installed:
-
-- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - Anthropic's official CLI for Claude
-- **[Astral uv](https://docs.astral.sh/uv/)** - Fast Python package manager (required for hook scripts)
-- **[Bun](https://bun.sh/)**, **npm**, or **yarn** - For running the server and client
-- **Anthropic API Key** - Set as `ANTHROPIC_API_KEY` environment variable
-- **OpenAI API Key** (optional) - For multi-model support with just-prompt MCP tool
-- **ElevenLabs API Key** (optional) - For audio features
-
-### 🐧 Complete Ubuntu Setup Guide
-
-For a complete step-by-step Ubuntu installation guide including all dependencies, system configuration, and troubleshooting, see the **[Ubuntu Setup Guide](config/ubuntu-setup-guide.md)** in the `config/` directory.
-
-### Configure .claude Directory
-
-To setup observability in your repo,we need to copy the .claude directory to your project root.
-
-To integrate the observability hooks into your projects:
-
-1. **Copy the entire `.claude` directory to your project root:**
-   ```bash
-   cp -R .claude /path/to/your/project/
-   ```
-
-2. **Update the `settings.json` configuration:**
-   
-   Open `.claude/settings.json` in your project and modify the `source-app` parameter to identify your project:
-   
-   ```json
-   {
-     "hooks": {
-       "PreToolUse": [{
-         "matcher": "",
-         "hooks": [
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/pre_tool_use.py"
-           },
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type PreToolUse --summarize"
-           }
-         ]
-       }],
-       "PostToolUse": [{
-         "matcher": "",
-         "hooks": [
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/post_tool_use.py"
-           },
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type PostToolUse --summarize"
-           }
-         ]
-       }],
-       "UserPromptSubmit": [{
-         "hooks": [
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/user_prompt_submit.py --log-only"
-           },
-           {
-             "type": "command",
-             "command": "uv run .claude/hooks/send_event.py --source-app YOUR_PROJECT_NAME --event-type UserPromptSubmit --summarize"
-           }
-         ]
-       }]
-       // ... (similar patterns for Notification, Stop, SubagentStop, PreCompact)
-     }
-   }
-   ```
-   
-   Replace `YOUR_PROJECT_NAME` with a unique identifier for your project (e.g., `my-api-server`, `react-app`, etc.).
-
-3. **Ensure the observability server is running:**
-   ```bash
-   # From the observability project directory (this codebase)
-   ./scripts/start-system.sh
-   ```
-
-Now your project will send events to the observability system whenever Claude Code performs actions.
-
-## 🤖 Autonomous Development with Tmux Orchestrator
-
-The included **Tmux Orchestrator** enables truly autonomous AI development teams that work 24/7:
-
-### **Quick Start - Autonomous Development**
-
-1. **Deploy a Simple Autonomous Team:**
-   ```bash
-   # Start tmux session for a project
-   tmux new-session -s my-project -c "/path/to/project"
-   
-   # Start Claude as Project Manager in window 0
-   claude
-   
-   # Brief the PM
-   "You are a Project Manager. Create an engineer in window 1 to implement 
-   user authentication. Schedule check-ins every 30 minutes with:
-   ./Tmux-Orchestrator/schedule_with_note.sh 30 'Check auth progress'"
-   ```
-
-2. **Deploy Full Orchestrator:**
-   ```bash
-   # Start orchestrator session
-   tmux new-session -s orchestrator
-   claude
-   
-   # Brief as orchestrator
-   "You are the Orchestrator. Set up project managers for:
-   1. Frontend (React app) - Add dashboard
-   2. Backend (API) - Optimize queries
-   Schedule yourself to check every hour."
-   ```
-
-### **Key Autonomous Features**
-
-- **🔄 Self-Scheduling**: Agents schedule their own work using `schedule_with_note.sh`
-- **👥 Team Hierarchy**: Orchestrator → Project Managers → Engineers
-- **💾 Persistent Work**: Continues in tmux sessions even when disconnected
-- **🔄 Auto-Commits**: Mandatory git commits every 30 minutes
-- **📊 Cross-Project Intelligence**: Agents share learnings between projects
-- **🎯 Quality Enforcement**: Project Managers enforce testing and code standards
-
-### **Autonomous Development Benefits**
-
-- **24/7 Development**: Your codebase improves while you sleep
-- **Parallel Projects**: Multiple agent teams working simultaneously  
-- **Quality Assurance**: Built-in PM oversight and git discipline
-- **Continuous Learning**: Agents accumulate knowledge in `LEARNINGS.md`
-- **Observable**: All autonomous activity appears in your observability dashboard
-
-## 🚀 Quick Start - Observability
-
-You can quickly view how this works by running this repositories .claude setup.
-
+### Mac (Local Development)
 ```bash
-# 1. Start both server and client
+# Start the observability system
 ./scripts/start-system.sh
 
-# 2. Open http://localhost:5173 in your browser
-
-# 3. Open Claude Code and run the following command:
-Run git ls-files to understand the codebase.
-
-# 4. Watch events stream in the client
-
-# 5. Copy the .claude folder to other projects you want to emit events from.
-cp -R .claude <directory of your codebase you want to emit events from>
+# Visit http://localhost:5173 to see the dashboard
+# Server runs on http://localhost:4000
 ```
+
+### Ubuntu Server
+See the comprehensive **[Ubuntu Homelab Setup Guide](config/ubuntu-homelab/README.md)** for:
+- Complete system setup with all dependencies
+- Cloudflare tunnel configuration
+- 24/7 autonomous agent deployment
+- Production-ready configuration
+
+Or use the quick command once on Ubuntu:
+```bash
+claude /ubuntu-setup
+```
+
+## 📁 What's Included
+
+### Core Components
+- **`apps/server/`** - Bun TypeScript server with SQLite & WebSocket
+- **`apps/client/`** - Vue 3 dashboard for real-time monitoring
+- **`apps/cli-tool/`** - Ink.js React-based terminal monitor
+- **`apps/new-client/`** - NextJS dashboard for real-time monitoring
+
+### Tool Integrations
+- **`claude-flow/`** - 64 specialized AI agents (optimized to 1.2GB RAM)
+- **`claude-code-router/`** - Smart model switching (DeepSeek, Gemini, etc.)
+- **`Tmux-Orchestrator/`** - Autonomous 24/7 agent management
+- **`.claude/`** - Hooks system for capturing all events
+
+### Configurations
+- **`config/git-worktrees/`** - Parallel development setup
+- **`config/ubuntu-homelab/`** - Complete Ubuntu server guide
+- **`scripts/`** - Launch and management scripts
 
 ## 📁 Project Structure
 
