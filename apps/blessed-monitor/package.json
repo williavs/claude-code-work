@@ -1,0 +1,23 @@
+{
+  "name": "@claude-monitor/blessed",
+  "version": "1.0.0",
+  "description": "Blessed-based CLI monitor for Claude Code observability",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test-server": "node test-server.js"
+  },
+  "bin": {
+    "claude-monitor-blessed": "./src/index.js"
+  },
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "commander": "^11.0.0",
+    "ws": "^8.13.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

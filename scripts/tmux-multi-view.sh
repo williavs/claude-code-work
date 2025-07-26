@@ -19,8 +19,8 @@ tmux split-window -h -t $SESSION_NAME:0 -c "$ECOSYSTEM_HOME"
 tmux split-window -v -t $SESSION_NAME:0.0 -c "$ECOSYSTEM_HOME"
 tmux split-window -v -t $SESSION_NAME:0.2 -c "$ECOSYSTEM_HOME"
 
-# Pane 0 (top-left): CLI Monitor
-tmux send-keys -t $SESSION_NAME:0.0 'cd apps/cli-tool && npm run start -- --server ws://localhost:4000/stream' C-m
+# Pane 0 (top-left): Blessed CLI Monitor
+tmux send-keys -t $SESSION_NAME:0.0 'cd apps/blessed-monitor && npm start -- --server ws://localhost:4000/stream' C-m
 
 # Pane 1 (bottom-left): Server logs
 tmux send-keys -t $SESSION_NAME:0.1 'tail -f logs/server.log' C-m
@@ -68,7 +68,7 @@ tmux select-window -t $SESSION_NAME:0
 echo "✨ Multi-view setup complete!"
 echo ""
 echo "Windows:"
-echo "  0: main    - Monitoring (CLI monitor, logs, main Claude, file explorer)"
+echo "  0: main    - Monitoring (Blessed monitor, logs, main Claude, file explorer)"
 echo "  1: agents  - 4 Claude agents in grid layout"
 echo "  2: dashboard - Vue dashboard server"
 echo ""
