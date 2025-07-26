@@ -7,6 +7,64 @@
 ECOSYSTEM_HOME="${CLAUDE_ECOSYSTEM_HOME:-/home/v3/ai-infra-stack/claude-code-work}"
 SESSION_NAME="claude-multi"
 
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to check and install dependencies
+check_dependencies() {
+    echo -e "${YELLOW}Checking dependencies...${NC}"
+    
+    # Check blessed-monitor dependencies
+    if [ ! -d "$ECOSYSTEM_HOME/apps/blessed-monitor/node_modules" ]; then
+        echo -e "${YELLOW}Installing blessed-monitor dependencies...${NC}"
+        cd "$ECOSYSTEM_HOME/apps/blessed-monitor"
+        npm install
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Failed to install blessed-monitor dependencies${NC}"
+            exit 1
+        fi
+        cd - > /dev/null
+    fi
+    
+    # Check Vue client dependencies
+    if [ ! -d "$ECOSYSTEM_HOME/apps/client/node_modules" ]; then
+        echo -e "${YELLOW}Installing Vue client dependencies...${NC}"
+        cd "$ECOSYSTEM_HOME/apps/client"
+        npm install
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Failed to install Vue client dependencies${NC}"
+            exit 1
+        fi
+        cd - > /dev/null
+    fi
+    
+    # Check if server is running
+    if ! curl -s http://localhost:4000 > /dev/null 2>&1; then
+        echo -e "${YELLOW}Starting observability server...${NC}"
+        cd "$ECOSYSTEM_HOME/apps/server"
+        if [ ! -d "node_modules" ]; then
+            echo -e "${YELLOW}Installing server dependencies...${NC}"
+            npm install
+        fi
+        nohup npm start > "$ECOSYSTEM_HOME/logs/server.log" 2>&1 &
+        echo "Waiting for server to start..."
+        sleep 3
+        if ! curl -s http://localhost:4000 > /dev/null 2>&1; then
+            echo -e "${RED}Failed to start server. Check logs/server.log${NC}"
+            exit 1
+        fi
+        cd - > /dev/null
+    fi
+    
+    echo -e "${GREEN}All dependencies ready!${NC}"
+}
+
+# Run dependency checks
+check_dependencies
+
 # Kill existing session if it exists
 tmux kill-session -t $SESSION_NAME 2>/dev/null
 
@@ -23,6 +81,8 @@ tmux split-window -v -t $SESSION_NAME:0.2 -c "$ECOSYSTEM_HOME"
 tmux send-keys -t $SESSION_NAME:0.0 'cd apps/blessed-monitor && npm start -- --server ws://localhost:4000/stream' C-m
 
 # Pane 1 (bottom-left): Server logs
+mkdir -p "$ECOSYSTEM_HOME/logs"
+touch "$ECOSYSTEM_HOME/logs/server.log"
 tmux send-keys -t $SESSION_NAME:0.1 'tail -f logs/server.log' C-m
 
 # Pane 2 (top-right): Main Claude
