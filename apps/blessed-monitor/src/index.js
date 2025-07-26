@@ -143,7 +143,27 @@ function updateEventList() {
   lines.push(''); // Empty line for spacing
   
   events.slice(-50).reverse().forEach(event => {
-    const time = new Date(event.timestamp).toLocaleTimeString();
+    // Handle timestamp - could be unix timestamp (number) or ISO string
+    let time = 'N/A';
+    try {
+      if (event.timestamp) {
+        const date = typeof event.timestamp === 'number' 
+          ? new Date(event.timestamp)
+          : new Date(event.timestamp);
+        
+        if (!isNaN(date.getTime())) {
+          time = date.toLocaleTimeString('en-US', { 
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+        }
+      }
+    } catch (e) {
+      // Keep default 'N/A' if parsing fails
+    }
+    
     const emoji = getEventEmoji(event.hookEventType || 'Unknown');
     const color = getEventColor(event.hookEventType || 'Unknown');
     const sessionId = event.sessionId || 'unknown';
@@ -153,11 +173,13 @@ function updateEventList() {
     const eventType = (event.hookEventType || 'Unknown').padEnd(18);
     const app = sourceApp.substring(0, 25).padEnd(25);
     
+    const sessionColor = getSessionColor(sessionId);
+    
     lines.push(
       `{gray-fg}${time}{/gray-fg}  ` +
       `${emoji}  {${color}-fg}${eventType}{/${color}-fg}  ` +
       `{cyan-fg}${app}{/cyan-fg}  ` +
-      `{yellow-fg}${sessionId.slice(0, 8)}{/yellow-fg}`
+      `{${sessionColor}-fg}${sessionId.slice(0, 8)}{/${sessionColor}-fg}`
     );
   });
   
@@ -195,6 +217,19 @@ function getEventColor(eventType) {
     'UserPromptSubmit': 'cyan'
   };
   return colorMap[eventType] || 'white';
+}
+
+// Session color mapping - persistent colors per session
+const sessionColors = new Map();
+const availableColors = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan'];
+let colorIndex = 0;
+
+function getSessionColor(sessionId) {
+  if (!sessionColors.has(sessionId)) {
+    sessionColors.set(sessionId, availableColors[colorIndex % availableColors.length]);
+    colorIndex++;
+  }
+  return sessionColors.get(sessionId);
 }
 
 // WebSocket event handlers

@@ -17,7 +17,12 @@ export class EventStore {
   addEvent(event) {
     // Normalize property names from snake_case to camelCase for internal use
     const normalizedEvent = {
-      timestamp: event.timestamp || new Date().toISOString(),
+      // Ensure timestamp is a proper date - server may send as number (unix timestamp)
+      timestamp: event.timestamp 
+        ? (typeof event.timestamp === 'number' 
+          ? new Date(event.timestamp).toISOString() 
+          : event.timestamp)
+        : new Date().toISOString(),
       sourceApp: event.source_app || event.sourceApp || 'unknown',
       sessionId: event.session_id || event.sessionId || 'unknown',
       hookEventType: event.hook_event_type || event.hookEventType || 'Unknown',
