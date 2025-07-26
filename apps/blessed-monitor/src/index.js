@@ -240,6 +240,9 @@ wsClient.on('disconnected', () => {
 });
 
 wsClient.on('event', (event) => {
+  // Debug: log what we're receiving
+  statusBar.setContent(`{yellow-fg}Event timestamp: ${event.timestamp} (type: ${typeof event.timestamp}){/yellow-fg}`);
+  
   eventStore.addEvent(event);
   updateHeader();
   updateEventList();
