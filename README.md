@@ -33,6 +33,27 @@ Claude Agents → Hook Scripts → HTTP POST → Bun Server → SQLite → WebSo
 ```
 
 ### Ubuntu Server
+
+#### Prerequisites: Node.js 18 or newer
+```bash
+# Install Node.js 18+ if not already installed
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+#### Install Claude Code First
+```bash
+# Install Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# Navigate to this project
+cd claude-code-hooks-multi-agent-observability
+
+# Start coding with Claude
+claude
+```
+
+#### Then Set Up This Ecosystem
 See the comprehensive **[Ubuntu Homelab Setup Guide](config/ubuntu-homelab/README.md)** for:
 - Complete system setup with all dependencies
 - Cloudflare tunnel configuration
