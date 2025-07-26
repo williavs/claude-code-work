@@ -15,13 +15,23 @@ export class EventStore {
   }
 
   addEvent(event) {
+    // Validate and sanitize event
+    const sanitizedEvent = {
+      timestamp: event.timestamp || new Date().toISOString(),
+      sourceApp: event.sourceApp || event.source_app || 'unknown',
+      sessionId: event.sessionId || event.session_id || 'unknown',
+      hookEventType: event.hookEventType || event.hook_event_type || 'Unknown',
+      payload: event.payload || {},
+      ...event  // Include any other properties
+    };
+    
     // Add event to the store
-    this.events.push(event);
+    this.events.push(sanitizedEvent);
     
     // Update available filter values
-    if (event.sourceApp) this.availableFilters.sourceApp.add(event.sourceApp);
-    if (event.sessionId) this.availableFilters.sessionId.add(event.sessionId);
-    if (event.hookEventType) this.availableFilters.eventType.add(event.hookEventType);
+    if (sanitizedEvent.sourceApp) this.availableFilters.sourceApp.add(sanitizedEvent.sourceApp);
+    if (sanitizedEvent.sessionId) this.availableFilters.sessionId.add(sanitizedEvent.sessionId);
+    if (sanitizedEvent.hookEventType) this.availableFilters.eventType.add(sanitizedEvent.hookEventType);
     
     // Limit the number of stored events
     if (this.events.length > this.maxEvents) {

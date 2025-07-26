@@ -133,14 +133,16 @@ function updateEventList() {
   
   events.slice(-50).reverse().forEach(event => {
     const time = new Date(event.timestamp).toLocaleTimeString();
-    const emoji = getEventEmoji(event.hookEventType);
-    const color = getEventColor(event.hookEventType);
+    const emoji = getEventEmoji(event.hookEventType || 'Unknown');
+    const color = getEventColor(event.hookEventType || 'Unknown');
+    const sessionId = event.sessionId || 'unknown';
+    const sourceApp = event.sourceApp || 'unknown';
     
     lines.push(
       `{gray-fg}${time}{/gray-fg} ` +
-      `${emoji}{${color}-fg}${event.hookEventType}{/${color}-fg} ` +
-      `{cyan-fg}${event.sourceApp}{/cyan-fg} ` +
-      `session_id: {yellow-fg}${event.sessionId.slice(0, 8)}{/yellow-fg}`
+      `${emoji}{${color}-fg}${event.hookEventType || 'Unknown'}{/${color}-fg} ` +
+      `{cyan-fg}${sourceApp}{/cyan-fg} ` +
+      `session_id: {yellow-fg}${sessionId.slice(0, 8)}{/yellow-fg}`
     );
   });
   
