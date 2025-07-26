@@ -2,7 +2,7 @@ import { HookEvent } from '../types/index.js';
 
 export class EventBuffer {
   private buffer: HookEvent[] = [];
-  private flushInterval: NodeJS.Timer | null = null;
+  private flushInterval: NodeJS.Timeout | null = null;
   private maxBufferSize = 50;
   
   constructor(
