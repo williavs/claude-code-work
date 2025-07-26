@@ -1,0 +1,33 @@
+[Unit]
+Description=Claude Monitor - CLI monitoring tool for Claude Code observability
+Documentation=https://github.com/your-org/claude-code-hooks-multi-agent-observability
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/claude-monitor
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="TERM=xterm-256color"
+
+# Command
+ExecStart=/usr/bin/node /usr/local/lib/node_modules/@homelab/claude-monitor/dist/index.js --server ws://localhost:4000/stream
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=claude-monitor
+
+[Install]
+WantedBy=multi-user.target
