@@ -131,6 +131,17 @@ function updateEventList() {
   const events = eventStore.getFilteredEvents();
   const lines = [];
   
+  // Add header
+  lines.push(
+    '{bold}{underline}' +
+    'Time        ' +
+    '   Event Type              ' +
+    'Application                ' +
+    'Session ID' +
+    '{/underline}{/bold}'
+  );
+  lines.push(''); // Empty line for spacing
+  
   events.slice(-50).reverse().forEach(event => {
     const time = new Date(event.timestamp).toLocaleTimeString();
     const emoji = getEventEmoji(event.hookEventType || 'Unknown');
@@ -138,11 +149,15 @@ function updateEventList() {
     const sessionId = event.sessionId || 'unknown';
     const sourceApp = event.sourceApp || 'unknown';
     
+    // Format event type with padding for alignment
+    const eventType = (event.hookEventType || 'Unknown').padEnd(18);
+    const app = sourceApp.substring(0, 25).padEnd(25);
+    
     lines.push(
-      `{gray-fg}${time}{/gray-fg} ` +
-      `${emoji} {${color}-fg}${event.hookEventType || 'Unknown'}{/${color}-fg} ` +
-      `{cyan-fg}${sourceApp}{/cyan-fg} ` +
-      `session_id: {yellow-fg}${sessionId.slice(0, 8)}{/yellow-fg}`
+      `{gray-fg}${time}{/gray-fg}  ` +
+      `${emoji}  {${color}-fg}${eventType}{/${color}-fg}  ` +
+      `{cyan-fg}${app}{/cyan-fg}  ` +
+      `{yellow-fg}${sessionId.slice(0, 8)}{/yellow-fg}`
     );
   });
   
