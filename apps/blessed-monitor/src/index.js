@@ -145,12 +145,10 @@ function updateEventList() {
   events.slice(-50).reverse().forEach(event => {
     // Parse timestamp - server sends unix timestamp in milliseconds
     const date = new Date(event.timestamp);
-    const time = date.toLocaleTimeString('en-US', { 
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const time = `${hours}:${minutes}:${seconds}`;
     
     const emoji = getEventEmoji(event.hookEventType || 'Unknown');
     const color = getEventColor(event.hookEventType || 'Unknown');
@@ -240,9 +238,6 @@ wsClient.on('disconnected', () => {
 });
 
 wsClient.on('event', (event) => {
-  // Debug: log what we're receiving
-  statusBar.setContent(`{yellow-fg}Event timestamp: ${event.timestamp} (type: ${typeof event.timestamp}){/yellow-fg}`);
-  
   eventStore.addEvent(event);
   updateHeader();
   updateEventList();
