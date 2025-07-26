@@ -143,30 +143,24 @@ function updateEventList() {
   lines.push(''); // Empty line for spacing
   
   events.slice(-50).reverse().forEach(event => {
-    // Handle timestamp - could be unix timestamp (number) or ISO string
-    let time = 'N/A';
-    try {
-      if (event.timestamp) {
-        const date = typeof event.timestamp === 'number' 
-          ? new Date(event.timestamp)
-          : new Date(event.timestamp);
-        
-        if (!isNaN(date.getTime())) {
-          time = date.toLocaleTimeString('en-US', { 
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-          });
-        }
-      }
-    } catch (e) {
-      // Keep default 'N/A' if parsing fails
-    }
+    // Parse timestamp - server sends unix timestamp in milliseconds
+    const date = new Date(event.timestamp);
+    const time = date.toLocaleTimeString('en-US', { 
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
     
     const emoji = getEventEmoji(event.hookEventType || 'Unknown');
     const color = getEventColor(event.hookEventType || 'Unknown');
-    const sessionId = event.sessionId || 'unknown';
+    
+    // Clean session ID - extract just the ID part if it has extra text
+    let sessionId = event.sessionId || 'unknown';
+    if (sessionId.includes(':')) {
+      sessionId = sessionId.split(':').pop().trim();
+    }
+    
     const sourceApp = event.sourceApp || 'unknown';
     
     // Format event type with padding for alignment
