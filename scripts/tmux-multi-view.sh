@@ -91,7 +91,7 @@ tmux send-keys -t $SESSION_NAME:0.2 'claude' C-m
 # Pane 3 (bottom-right): File explorer
 # Check which file manager is available
 if command -v ranger &> /dev/null; then
-    tmux send-keys -t $SESSION_NAME:0.3 'ranger' C-m
+    tmux send-keys -t $SESSION_NAME:0.3 'ranger --cmd="set show_hidden true"' C-m
 elif command -v lf &> /dev/null; then
     tmux send-keys -t $SESSION_NAME:0.3 'lf' C-m
 elif command -v mc &> /dev/null; then
