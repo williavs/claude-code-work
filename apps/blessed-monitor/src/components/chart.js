@@ -1,9 +1,10 @@
 import blessed from 'blessed';
 
 export function createActivityChart(screen) {
-  const chart = blessed.box({
+  // Create a simple chart container
+  const container = blessed.box({
     parent: screen,
-    label: ' Activity ',
+    label: ' Activity (3min) ',
     tags: true,
     border: {
       type: 'line'
@@ -18,59 +19,72 @@ export function createActivityChart(screen) {
         fg: 'white',
         bold: true
       }
-    },
-    padding: {
-      left: 1,
-      right: 1
     }
   });
 
-  // Custom method to set chart data
-  chart.setData = function(data) {
+  // Simple setData method with sparkline
+  container.setData = function(data) {
     if (!data || data.length === 0) {
-      this.setContent('{center}No activity data{/center}');
+      container.setContent('{center}{gray-fg}⏳ Waiting for events...{/gray-fg}{/center}');
       return;
     }
 
-    // Find max value for scaling
-    const maxValue = Math.max(...data.map(d => d.y), 1);
-    const chartHeight = this.height - 4; // Account for border and padding
-    const chartWidth = this.width - 4;
+    // Data comes from eventStore in format: [{x: timeString, y: count}, ...]
+    const values = data.map(d => d.y || 0);
     
-    // Create simple ASCII bar chart
-    const barWidth = Math.floor(chartWidth / data.length);
-    const bars = [];
+    // Get actual available width dynamically (like we did for events)
+    const availableWidth = container.width - 4; // Account for borders and padding
     
-    // Draw bars
-    for (let i = 0; i < Math.min(data.length, Math.floor(chartWidth / 2)); i++) {
-      const value = data[i].y;
-      const barHeight = Math.round((value / maxValue) * chartHeight);
-      const color = value > 0 ? 'green' : 'gray';
+    if (values.length === 0 || availableWidth <= 0) {
+      container.setContent('{center}{gray-fg}No data{/gray-fg}{/center}');
+      return;
+    }
+
+    // Create sparkline visualization that fills the entire width
+    const maxValue = Math.max(...values, 1);
+    const sparklineChars = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+    
+    // Generate sparkline using full available width
+    let sparkline = '';
+    
+    // If we have more data points than width, sample them
+    // If we have fewer data points than width, stretch them
+    for (let i = 0; i < availableWidth; i++) {
+      let value = 0;
       
-      for (let h = 0; h < chartHeight; h++) {
-        if (!bars[h]) bars[h] = '';
-        
-        if (h >= chartHeight - barHeight) {
-          bars[h] += `{${color}-fg}█{/${color}-fg} `;
-        } else {
-          bars[h] += '  ';
-        }
+      if (values.length >= availableWidth) {
+        // More data than space - sample the data
+        const dataIndex = Math.floor((i / availableWidth) * values.length);
+        value = values[dataIndex] || 0;
+      } else {
+        // Less data than space - stretch the data
+        const dataIndex = Math.floor((i / availableWidth) * values.length);
+        value = values[dataIndex] || 0;
       }
+      
+      const normalized = Math.floor((value / maxValue) * (sparklineChars.length - 1));
+      const char = sparklineChars[normalized] || '▁';
+      
+      // Color based on activity level
+      let color = 'green';
+      if (value > maxValue * 0.7) color = 'red';
+      else if (value > maxValue * 0.4) color = 'yellow';
+      
+      sparkline += `{${color}-fg}${char}{/${color}-fg}`;
     }
-    
-    // Add scale on the left
-    const scaleText = `${maxValue}`;
-    if (bars[0]) {
-      bars[0] = `{gray-fg}${scaleText.padStart(3)}{/gray-fg} ` + bars[0];
-    }
-    
-    // Join bars and reverse so they draw from bottom up
-    const content = bars.reverse().join('\n');
-    this.setContent(content);
+
+    const content = [
+      '',
+      sparkline,
+      `{center}{gray-fg}Peak: ${maxValue} events{/gray-fg}{/center}`,
+      ''
+    ].join('\n');
+
+    container.setContent(content);
   };
 
-  // Initialize with empty data
-  chart.setData([]);
+  // Initialize
+  container.setData([]);
 
-  return chart;
+  return container;
 }

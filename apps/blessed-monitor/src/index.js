@@ -131,13 +131,29 @@ function updateEventList() {
   const events = eventStore.getFilteredEvents();
   const lines = [];
   
-  // Add header
+  // Calculate dynamic column widths based on screen width
+  const screenWidth = screen.width - 4; // Account for padding and borders
+  const timeWidth = 9;  // HH:MM:SS + space
+  const emojiWidth = 3; // emoji + space
+  const sessionWidth = 8; // 6 chars + padding
+  
+  // Remaining space for event type and application
+  const remainingWidth = screenWidth - timeWidth - emojiWidth - sessionWidth;
+  const eventTypeWidth = Math.floor(remainingWidth * 0.4); // 40% of remaining
+  const appWidth = Math.floor(remainingWidth * 0.6); // 60% of remaining
+  
+  // Add dynamic header
+  const timeHeader = 'Time'.padEnd(timeWidth);
+  const eventTypeHeader = 'Event Type'.padEnd(eventTypeWidth);
+  const appHeader = 'Application'.padEnd(appWidth);
+  const sessionHeader = 'Session';
+  
   lines.push(
     '{bold}{underline}' +
-    'Time        ' +
-    '   Event Type              ' +
-    'Application                ' +
-    'Session ID' +
+    timeHeader +
+    eventTypeHeader +
+    appHeader +
+    sessionHeader +
     '{/underline}{/bold}'
   );
   lines.push(''); // Empty line for spacing
@@ -148,7 +164,7 @@ function updateEventList() {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    const time = `${hours}:${minutes}:${seconds}`;
+    const time = `${hours}:${minutes}:${seconds}`.padEnd(timeWidth);
     
     const emoji = getEventEmoji(event.hookEventType || 'Unknown');
     const color = getEventColor(event.hookEventType || 'Unknown');
@@ -158,20 +174,23 @@ function updateEventList() {
     if (sessionId.includes(':')) {
       sessionId = sessionId.split(':').pop().trim();
     }
+    // Remove any non-printable characters that break blessed rendering
+    sessionId = sessionId.replace(/[^\x20-\x7E]/g, '');
     
     const sourceApp = event.sourceApp || 'unknown';
     
-    // Format event type with padding for alignment
-    const eventType = (event.hookEventType || 'Unknown').padEnd(18);
-    const app = sourceApp.substring(0, 25).padEnd(25);
+    // Format with dynamic widths
+    const eventType = (event.hookEventType || 'Unknown').substring(0, eventTypeWidth - 1).padEnd(eventTypeWidth);
+    const app = sourceApp.substring(0, appWidth - 1).padEnd(appWidth);
+    const session = sessionId.slice(0, 6);
     
     const sessionColor = getSessionColor(sessionId);
     
     lines.push(
-      `{gray-fg}${time}{/gray-fg}  ` +
-      `${emoji}  {${color}-fg}${eventType}{/${color}-fg}  ` +
-      `{cyan-fg}${app}{/cyan-fg}  ` +
-      `{${sessionColor}-fg}${sessionId.slice(0, 8)}{/${sessionColor}-fg}`
+      `{white-fg}${time}{/white-fg}` +
+      `${emoji} {${color}-fg}${eventType}{/${color}-fg}` +
+      `{cyan-fg}${app}{/cyan-fg}` +
+      `{${sessionColor}-fg}${session}{/${sessionColor}-fg}`
     );
   });
   
