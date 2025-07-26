@@ -140,7 +140,7 @@ function updateEventList() {
     
     lines.push(
       `{gray-fg}${time}{/gray-fg} ` +
-      `${emoji}{${color}-fg}${event.hookEventType || 'Unknown'}{/${color}-fg} ` +
+      `${emoji} {${color}-fg}${event.hookEventType || 'Unknown'}{/${color}-fg} ` +
       `{cyan-fg}${sourceApp}{/cyan-fg} ` +
       `session_id: {yellow-fg}${sessionId.slice(0, 8)}{/yellow-fg}`
     );
