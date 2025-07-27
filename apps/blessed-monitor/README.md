@@ -1,6 +1,6 @@
 # Claude Monitor - Blessed CLI
 
-A terminal-based monitoring application built with blessed for real-time event visualization.
+A terminal-based monitoring application built with blessed for real-time event visualization and tmux session management.
 
 ## Features
 
@@ -8,6 +8,7 @@ A terminal-based monitoring application built with blessed for real-time event v
 - Color-coded event display with emojis
 - Activity chart showing event frequency
 - Interactive filtering by source app, session ID, and event type
+- **NEW: Tmux Session Setup Wizard** - Create custom development environments
 - Keyboard shortcuts for easy navigation
 - Auto-reconnection on disconnect
 - Mouse support for scrolling
@@ -41,6 +42,7 @@ npm run test-server
 - **F**: Toggle filter panel
 - **R**: Reconnect to server
 - **C**: Clear all filters (when filter panel is shown)
+- **T**: Open Tmux Session Setup Wizard
 - **1**: Cycle Source App filter (when filter panel is shown)
 - **2**: Cycle Session ID filter (when filter panel is shown)
 - **3**: Cycle Event Type filter (when filter panel is shown)
@@ -77,3 +79,36 @@ The monitor displays different event types with unique colors and emojis:
    ```
 
 The test server will send random events every 2 seconds for demonstration purposes.
+
+## Tmux Session Wizard
+
+The Tmux Session Setup Wizard allows you to create custom development environments with multiple windows configured for different tools:
+
+### Available Applications:
+- **Claude Code** - Standard Claude Code instance
+- **Claude Flow** - Claude Flow with 54 specialized agents
+- **Tmux Orchestrator** - Autonomous 24/7 agent orchestration
+- **Browsh Browser** - Terminal web browser with graphics
+- **Ranger File Manager** - Terminal file manager
+- **System Monitor** - Interactive process viewer (htop)
+- **Server Logs** - Real-time server log monitoring
+- **Blessed Monitor** - Event monitoring dashboard
+- **Shell** - Bash shell
+- **Custom Command** - Enter your own command
+
+### Using the Wizard:
+1. Press **T** to open the wizard
+2. Configure basic settings (session name, project path)
+3. Choose number of windows (1-8)
+4. Select application for each window
+5. Review configuration
+6. Generate script
+
+Generated scripts are:
+- Saved to `apps/blessed-monitor/tmux-scripts/`
+- Symlinked to your home directory for easy access
+- Executable directly: `~/your-session-name.sh`
+
+### Example Sessions:
+- `dev-session.sh` - Standard development setup
+- `claude-flow-session.sh` - Full Claude Flow environment

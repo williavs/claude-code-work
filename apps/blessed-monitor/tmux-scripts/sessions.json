@@ -1,0 +1,33 @@
+{
+  "sessions": [
+    {
+      "name": "dev-session",
+      "description": "Standard development session",
+      "created": "2025-07-27T00:00:00Z",
+      "windows": [
+        {"name": "Claude", "app": "claude"},
+        {"name": "Monitor", "app": "blessed-monitor"},
+        {"name": "Logs", "app": "server-logs"},
+        {"name": "Files", "app": "ranger"}
+      ]
+    },
+    {
+      "name": "claude-flow",
+      "description": "Claude Flow with orchestration",
+      "created": "2025-07-27T00:00:00Z",
+      "windows": [
+        {"name": "Claude-Flow", "app": "claude-flow"},
+        {"name": "Orchestrator", "app": "tmux-orchestrator"},
+        {"name": "Monitor", "app": "blessed-monitor"},
+        {"name": "System", "app": "htop"},
+        {"name": "Browser", "app": "browsh"}
+      ]
+    }
+  ],
+  "defaultPath": "/home/wv3/claude-code-work",
+  "preferences": {
+    "enableMouse": true,
+    "defaultWindowCount": 3,
+    "symlinkToHome": true
+  }
+}
