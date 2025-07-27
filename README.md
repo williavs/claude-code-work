@@ -23,47 +23,32 @@ Claude Agents → Hook Scripts → HTTP POST → Bun Server → SQLite → WebSo
 
 ## 🚀 Quick Start
 
-### Mac (Local Development)
-```bash
-# Start the observability system
-./scripts/start-system.sh
+### Prerequisites
+- Claude Code installed and configured
+- Ubuntu/Linux or macOS
+- Node.js 18+ (will be checked by setup script)
 
-# Visit http://localhost:5173 to see the dashboard
-# Server runs on http://localhost:4000
+### Two Simple Steps
+
+```bash
+# Step 1: Run setup (installs all dependencies)
+./scripts/setup-environment.sh
+
+# Step 2: Launch the multi-view dashboard
+./scripts/tmux-multi-view.sh
 ```
 
-### Ubuntu Server
+That's it! This will start:
+- 📊 Observability server (port 4000)
+- 🎨 Vue dashboard (port 5173)
+- 📟 Blessed CLI monitor
+- 🤖 Multiple Claude agents
+- 📁 File explorer
 
-#### Prerequisites: Node.js 18 or newer
-```bash
-# Install Node.js 18+ if not already installed
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-#### Install Claude Code First
-```bash
-# Install Claude Code
-npm install -g @anthropic-ai/claude-code
-
-# Navigate to this project
-cd claude-code-hooks-multi-agent-observability
-
-# Start coding with Claude
-claude
-```
-
-#### Then Set Up This Ecosystem
-See the comprehensive **[Ubuntu Homelab Setup Guide](config/ubuntu-homelab/README.md)** for:
-- Complete system setup with all dependencies
-- Cloudflare tunnel configuration
-- 24/7 autonomous agent deployment
-- Production-ready configuration
-
-Or use the quick command once on Ubuntu:
-```bash
-claude /ubuntu-setup
-```
+### Access Points
+- **Web Dashboard**: http://localhost:5173
+- **API Server**: http://localhost:4000
+- **WebSocket**: ws://localhost:4000/stream
 
 ## 📁 What's Included
 
@@ -504,24 +489,27 @@ This system creates a centralized command and configuration development hub whil
 
 ## 🔧 Troubleshooting
 
-### Hook Scripts Not Working
+### Common Issues
 
-If your hook scripts aren't executing properly, it might be due to relative paths in your `.claude/settings.json`. Claude Code documentation recommends using absolute paths for command scripts.
+1. **Dependencies not installing**: Make sure you have Node.js 18+ installed
+2. **Server won't start**: Check if port 4000 is already in use
+3. **Hooks not working**: Ensure Python 3 and `uv` are installed (setup script will check)
+4. **Tmux issues**: Install tmux with `sudo apt install tmux`
 
-**Solution**: Use the custom Claude Code slash command to automatically convert all relative paths to absolute paths:
+### Manual Server Start
+
+If you need to start components individually:
 
 ```bash
-# In Claude Code, simply run:
-/convert_paths_absolute
+# Terminal 1: Start server
+cd apps/server && bun run dev
+
+# Terminal 2: Start Vue dashboard  
+cd apps/client && bun run dev
+
+# Terminal 3: Start blessed monitor
+cd apps/blessed-monitor && npm start -- --server ws://localhost:4000/stream
 ```
-
-This command will:
-- Find all relative paths in your hook command scripts
-- Convert them to absolute paths based on your current working directory
-- Create a backup of your original settings.json
-- Show you exactly what changes were made
-
-This ensures your hooks work correctly regardless of where Claude Code is executed from.
 
 ## Master AI Coding
 > And prepare for Agentic Engineering

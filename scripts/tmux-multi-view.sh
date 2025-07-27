@@ -4,7 +4,7 @@
 # Creates a beautiful multi-pane layout for monitoring everything at once
 
 # Configuration
-ECOSYSTEM_HOME="${CLAUDE_ECOSYSTEM_HOME:-/home/v3/ai-infra-stack/claude-code-work}"
+ECOSYSTEM_HOME="${CLAUDE_ECOSYSTEM_HOME:-$(pwd)}"
 SESSION_NAME="claude-multi"
 
 # Color codes
@@ -15,51 +15,41 @@ NC='\033[0m' # No Color
 
 # Function to check and install dependencies
 check_dependencies() {
-    echo -e "${YELLOW}Checking dependencies...${NC}"
-    
-    # Check blessed-monitor dependencies
-    if [ ! -d "$ECOSYSTEM_HOME/apps/blessed-monitor/node_modules" ]; then
-        echo -e "${YELLOW}Installing blessed-monitor dependencies...${NC}"
-        cd "$ECOSYSTEM_HOME/apps/blessed-monitor"
-        npm install
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}Failed to install blessed-monitor dependencies${NC}"
-            exit 1
-        fi
-        cd - > /dev/null
-    fi
-    
-    # Check Vue client dependencies
-    if [ ! -d "$ECOSYSTEM_HOME/apps/client/node_modules" ]; then
-        echo -e "${YELLOW}Installing Vue client dependencies...${NC}"
-        cd "$ECOSYSTEM_HOME/apps/client"
-        npm install
-        if [ $? -ne 0 ]; then
-            echo -e "${RED}Failed to install Vue client dependencies${NC}"
-            exit 1
-        fi
-        cd - > /dev/null
-    fi
+    echo -e "${YELLOW}Checking runtime environment...${NC}"
     
     # Check if server is running
-    if ! curl -s http://localhost:4000 > /dev/null 2>&1; then
+    if ! curl -s http://localhost:4000/events/filter-options > /dev/null 2>&1; then
         echo -e "${YELLOW}Starting observability server...${NC}"
         cd "$ECOSYSTEM_HOME/apps/server"
-        if [ ! -d "node_modules" ]; then
-            echo -e "${YELLOW}Installing server dependencies...${NC}"
-            npm install
+        
+        # Use bun if available, otherwise npm
+        if command -v bun &> /dev/null; then
+            echo "  Using Bun to start server..."
+            nohup bun run dev > "$ECOSYSTEM_HOME/logs/server.log" 2>&1 &
+        else
+            echo "  Using npm to start server..."
+            nohup npm start > "$ECOSYSTEM_HOME/logs/server.log" 2>&1 &
         fi
-        nohup npm start > "$ECOSYSTEM_HOME/logs/server.log" 2>&1 &
-        echo "Waiting for server to start..."
-        sleep 3
-        if ! curl -s http://localhost:4000 > /dev/null 2>&1; then
+        
+        echo "  Waiting for server to start..."
+        for i in {1..10}; do
+            if curl -s http://localhost:4000/events/filter-options > /dev/null 2>&1; then
+                echo -e "${GREEN}  ✓ Server started successfully${NC}"
+                break
+            fi
+            sleep 1
+        done
+        
+        if ! curl -s http://localhost:4000/events/filter-options > /dev/null 2>&1; then
             echo -e "${RED}Failed to start server. Check logs/server.log${NC}"
             exit 1
         fi
         cd - > /dev/null
+    else
+        echo -e "${GREEN}✓ Server already running${NC}"
     fi
     
-    echo -e "${GREEN}All dependencies ready!${NC}"
+    echo -e "${GREEN}Environment ready!${NC}"
 }
 
 # Run dependency checks
@@ -115,11 +105,16 @@ tmux send-keys -t $SESSION_NAME:1.3 'echo "Claude Agent 4 - Documentation" && cl
 
 # Window 3: Dashboard helper
 tmux new-window -t $SESSION_NAME -n "dashboard" -c "$ECOSYSTEM_HOME"
-tmux send-keys -t $SESSION_NAME:2 'echo "=== Vue Dashboard ===" && echo "Starting dashboard..." && cd apps/client && npm run dev' C-m
+if command -v bun &> /dev/null; then
+    tmux send-keys -t $SESSION_NAME:2 'echo "=== Vue Dashboard ===" && echo "Starting dashboard with Bun..." && cd apps/client && bun run dev' C-m
+else
+    tmux send-keys -t $SESSION_NAME:2 'echo "=== Vue Dashboard ===" && echo "Starting dashboard with npm..." && cd apps/client && npm run dev' C-m
+fi
 
-# Set better pane borders
+# Set better pane borders and enable mouse
 tmux set-option -t $SESSION_NAME pane-border-status top
 tmux set-option -t $SESSION_NAME pane-border-format " #P: #{pane_current_command} "
+tmux set -g mouse on
 
 # Switch back to main window
 tmux select-window -t $SESSION_NAME:0
