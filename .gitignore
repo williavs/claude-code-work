@@ -246,3 +246,15 @@ claude-output.json
 .claude/commands/feature.md
 
 specs/
+
+# Claude-specific files and directories
+.claude/todos/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/projects/
+.claude/.credentials.json
+
+# Claude todo files
+**/todos.json
+**/.todos.json
+**/TODOS.md
